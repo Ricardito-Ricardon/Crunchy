@@ -3,8 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "GameFramework/Character.h"
+#include "GameplayEffectTypes.h"
 #include "AbilitySystemInterface.h"
+
 #include "CCharacterCase.generated.h"
 
 class UCAbilitySystemComponent;
@@ -42,4 +45,12 @@ private:
 	UPROPERTY()
 	UCAttributeSet* AttributeSet;
 
+	UPROPERTY(VisibleAnywhere, Category = "UI")
+	class UWidgetComponent* StatusWidgetComp;
+
+	UPROPERTY()
+	class UStatusGauge* StatusGauge;
+
+	void HealthUpdated(const FOnAttributeChangeData& ChangeData);
+	void MaxHealthUpdated(const FOnAttributeChangeData& ChangeData);
 };

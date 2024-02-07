@@ -3,16 +3,21 @@
 
 #include "GameplayAbilities/CAbilitySystemComponent.h"
 
-void UCAbilitySystemComponent::ApplyGameplayEffects(const TSubclassOf<UGameplayEffect>& EffectToApply, int Level)
+void UCAbilitySystemComponent::ApplyGameplayEffects_Implementation(TSubclassOf<UGameplayEffect> EffectToApply, int Level)
 {
 	FGameplayEffectSpecHandle specHandle = MakeOutgoingSpec(EffectToApply,Level,MakeEffectContext());
 	ApplyGameplayEffectSpecToSelf(*specHandle.Data.Get());
 }
 
-void UCAbilitySystemComponent::ApplyInitialEffects()
+bool UCAbilitySystemComponent::ApplyGameplayEffects_Validate(TSubclassOf<UGameplayEffect> EffectToApply, int Level)
+{
+	return false;
+}
+
+void UCAbilitySystemComponent::ApplyInitialEffect()
 {
 	for (const TSubclassOf<UGameplayEffect>& Effect : InitialEffects)
 	{
-		ApplyGameplayEffects(Effect, 1);
+		ApplyGameplayEffect(Effect, 1);
 	}
 }

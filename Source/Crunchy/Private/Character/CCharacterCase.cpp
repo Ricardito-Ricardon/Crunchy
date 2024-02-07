@@ -4,6 +4,8 @@
 #include "Character/CCharacterCase.h"
 #include "GameplayAbilities/CAbilitySystemComponent.h"
 #include "GameplayAbilities/CAttributeSet.h"
+#include "Widgets/StatusGauge.h"
+#include "Components/Widgetcomponent.h"
 
 // Sets default values
 ACCharacterCase::ACCharacterCase()
@@ -16,6 +18,12 @@ ACCharacterCase::ACCharacterCase()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	AttributeSet = CreateDefaultSubobject <UCAttributeSet>("Attribute Set");
+
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCAttributeSet::GetHealthAttribute()).AddObject(this, &ACCharacterCase:HealthUpdated);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCAttributeSet::GetMaxHealthAttribute()).AddObject(this, &ACCharacterCase:MaxHealthUpdated);
+
+	StatusWidgetComp = CreateDefaultSubobject<UWidgetComponent>("Status Widget Comp");
+	StatusWidgetComp->SetupAttatchment(GetRootComponent());
 }
 
 void ACCharacterCase::SetupAbilitySystemComponent()
@@ -25,7 +33,7 @@ void ACCharacterCase::SetupAbilitySystemComponent()
 
 void ACCharacterCase::InitAbilityAndAttribute()
 {
-	AbilitySystemComponent->ApplyInitialEffects();
+	AbilitySystemComponent->ApplyInitialEffect();
 }
 
 // Called when the game starts or when spawned
@@ -45,10 +53,27 @@ void ACCharacterCase::Tick(float DeltaTime)
 // Called to bind functionality to input
 void ACCharacterCase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-
+	StatusGauge = Cast<UStatusGauge> (StatusWidgetComp->GetUserWidgetObject());
+	if (!StatusGauge)
+	{
+		UE_LOG(LogTemp, Error, TEXT("$s can't spawn status gauge hud, status widget component has the wrong widget setup"), *GetName());
+		return;
+	}
 }
 
 UAbilitySystemComponent* ACCharacterCase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+void ACCharacterCase::HealthUpdated(const FOnAttributeChangeData& ChangeData)
+{
+	if(StatusGauge)
+	StatusGauge->SetHealth(ChangeData.NewValue, AttributeSet->GetMaxHealth());
+}
+
+void ACCharacterCase::MaxHealthUpdated(const FOnAttributeChangeData& ChangeData)
+{
+	if(StatusGauge)
+	StatusGauge->SetHealth(AttributeSet->GetHealth(), ChangeData.NewValue);
 }
